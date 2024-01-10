@@ -1,0 +1,24 @@
+addi x1, x0, 55
+addi x6, x0, 2
+addi x7, x0, 1
+blt x1, x6, done
+srai x3, x1, 1
+bne x3, x7, loop
+jal x0, prime
+loop:
+jal x0, mod
+modend:
+sub x3, x3, x7
+bne x3, x7, loop
+prime:
+addi x2, x0, 1
+jal x0, done
+mod:
+add x4, x3, x0
+add x5, x1, x0
+modloop:
+sub x5, x5, x4
+bge x5, x7, modloop
+beq x5, x0, done
+jal x0, modend
+done:
