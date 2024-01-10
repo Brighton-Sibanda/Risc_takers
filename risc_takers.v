@@ -1,6 +1,6 @@
-// Template for Northwestern - CompEng 361 - Lab3
-// Groupname: architects
-// NetIDs: bns4987 - bpf2734
+// 
+// Groupname: Risc Takers
+// NetIDs: 
 
 // Some useful defines...please add your own
 `define OPCODE_COMPUTE    7'b0110011
@@ -212,28 +212,6 @@ module PipelinedCPU(halt, clk, rst);
     ex_ford = ex_ford_next;
     mem_ford= mem_ford_next;
 
-    /*
-        if (RWrEnRegMem == 1'b0 && forward_index == 2'b10)
-          begin
-            forward_signals[14:10] = fetch_reg_ex[11:7];
-            opA_alt = RWrdataRegEx;
-            $display("just chucked %8x, into %8x", opA_alt, fetch_reg_ex[11:7]);
-            forward_index = 2'b1;
-          end
-        else if (RWrEnRegMem == 1'b0 && forward_index == 2'b01)
-        begin 
-          forward_signals[9:5] = fetch_reg_ex[11:7];
-          opA_alt2 = RWrdataRegEx;
-          $display("just chucked %8x, into %8x", opA_alt2, fetch_reg_ex[11:7]);
-          forward_index = 2'b0;
-        end
-        else if (RWrEnRegMem == 1'b0 && forward_index == 2'b0)
-        begin
-          forward_signals[4:0] = fetch_reg_ex[11:7];
-          opA_alt3 = RWrdataRegEx;
-          $display("just chucked %8x, into %8x", opA_alt3, fetch_reg_ex[11:7]);
-          forward_index = 2'b10;
-        end */
   end
 
   always @*
@@ -347,22 +325,6 @@ module PipelinedCPU(halt, clk, rst);
       begin
         Rdata2_fin = mem_ford;
       end
-
-
-
-      //Things needed for Memory Write //MUST BE ASSIGNED STILL!!
-      // DataAddrMem_next = DataAddrReg;
-      // MemSizeRegMem_next = MemSizeReg;
-      // StoreDataRegMem_next = StoreDataReg;
-      // MemWrEnRegMem_next = 1'b0;
-      // //Things needed for Memory Read
-      // DataAddrMem_next = DataAddrReg;
-      // MemSizeRegMem_next = MemSizeReg;
-      // MemWrEnRegMem_next = 1'b1;
-      // //Things needed for Reg Write back
-      // RdstRegMem_next = Rdst_reg_ex;
-      // RWrdataRegMem_next = RWrdataRegEx;
-      // RWrEnRegMem_next = 1'b0;
 
       //IF no memory write, need to have MemWrEnRegMem_next = 1'b1;
       //if no reg write back, need to have RWrEnRegMem_next = 1'b1;
@@ -730,30 +692,6 @@ module PipelinedCPU(halt, clk, rst);
 
       end
 
-      // add the new register into forward
-      /*
-      if (RWrEnRegWb_next == 1'b0 && forward_index == 2'b10)
-      begin
-        forward_signals[14:10] = fetch_reg_wb_next[11:7];
-        opA_alt = RWrdataRegWb_next;
-        $display("just chucked %8x, into %8x", opA_alt, fetch_reg_wb_next[11:7]);
-        forward_index = 2'b1;
-      end
-      else if (RWrEnRegWb_next == 1'b0 && forward_index == 2'b01)
-      begin 
-        forward_signals[9:5] = fetch_reg_wb_next[11:7];
-        opA_alt2 = RWrdataRegWb_next;
-        $display("just chucked %8x, into %8x", opA_alt2, fetch_reg_wb_next[11:7]);
-        forward_index = 2'b0;
-      end
-      else if (RWrEnRegWb_next == 1'b0 && forward_index == 2'b0)
-      begin
-        forward_signals[4:0] = fetch_reg_wb_next[11:7];
-        opA_alt3 = RWrdataRegWb_next;
-        $display("just chucked %8x, into %8x", opA_alt3, fetch_reg_wb_next[11:7]);
-        forward_index = 2'b10;
-      end */
-
       mem_ford_lab_next[5] = 1'b0;
       if (RWrEnRegWb_next == 1'b0)
       begin
@@ -839,23 +777,3 @@ module ExecutionUnit(out, opA, opB, func, auxFunc);
   end
   assign out = myOutput;
 endmodule // ExecutionUnit
-
-
-
-
-
-
-/*
- 
-any instuctions before a halt should finish
-after halt, dont execute
-e.g detect, and not immediately halt, wait for other instructions to finish
-make sure that any instructions that come after it dont finish
- 
-functionality of stalls or NOPs, added at the end
-branch prediction always not taken
-forwardning not necessarily needed
- 
- 
- 
-*/
