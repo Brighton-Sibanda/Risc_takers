@@ -5,8 +5,14 @@ Created on Thu Jan 11 01:48:58 2024
 
 @author: brightonsibanda
 """
+global var
+var = 0
+
+## I'm using var to track iteration counts
+
 
 def num_digits_base_3(n):
+  global var
   """
   Calculates the number of digits a number has when represented in base 3.
 
@@ -22,15 +28,17 @@ def num_digits_base_3(n):
 
   digits = 0
   while n > 0:
+    var += 1
     digits += 1
-    # n //= 3 # floor division is needed for 
-    n = floor_division(n, 3)
+    n //= 3 # floor division is needed for 
+    # n = floor_division(n, 3)
 
   return digits
 
 
 # Just in case: floor division algorithm:
 def floor_division(dividend, divisor):
+  global var
   """
   Performs floor division without using the // operator.
 
@@ -58,6 +66,7 @@ def floor_division(dividend, divisor):
   while dividend >= divisor:
     dividend -= divisor
     quotient += 1
+    var += 1
 
   # Apply the sign to the result
   return sign * quotient
@@ -65,6 +74,6 @@ def floor_division(dividend, divisor):
 
 
 # Example usage
-number = 123
+number = 3444
 num_digits = num_digits_base_3(number)
 print(f"{number} has {num_digits} digits in base 3")

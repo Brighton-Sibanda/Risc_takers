@@ -1,0 +1,26 @@
+// start
+// input: n = x5
+
+num_digits:
+    	andi x8, x8, 0
+      andi x6, x6, 0
+      addi x3, x8, 3
+      andi x1, x1, 0
+      addi x2, x5, 0
+      beq x5, x8, done
+
+    base_3_loop:
+    	addi x1, x1, 1
+      andi x4, x4, 0
+      bge x5, x8, divide
+      continue:
+        add x5, x4, x8
+        beq x5, x8, done
+        bge x5, x8, base_3_loop
+    divide:
+        sub x5, x5, x3
+        blt x5, x8, continue
+        addi x4, x4, 1
+        bge x5, x3, divide
+        blt x5, x3, continue
+done:

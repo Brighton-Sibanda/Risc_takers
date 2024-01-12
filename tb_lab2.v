@@ -1,6 +1,6 @@
 // Testbench for Northwestern - CompEng 361 - Lab2
 //`include "pipelined_gutted.v"
-`include "pipelined_v3.v"
+`include "risc_takers.v"
 module tb;
   reg clk, rst;
   wire halt;
@@ -32,12 +32,12 @@ module tb;
     wait(halt);
 
     // Dump registers
-    #300 $writememh("regs_out.hex", CPU.RF.Mem);
+    #10000 $writememh("regs_out.hex", CPU.RF.Mem);
 
     // Dump memory
-    #300 $writememh("mem_out.hex", CPU.DMEM.Mem);
+    #10000 $writememh("mem_out.hex", CPU.DMEM.Mem);
 
-    $finish;
+    #10000 $finish;
   end
 
 
