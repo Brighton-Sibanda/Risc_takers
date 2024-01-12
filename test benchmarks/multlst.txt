@@ -1,0 +1,18 @@
+# multlst function
+# Input: x10 = pointer to the list
+#        x11 = length of the list
+#        x12 = multiplier 'n'
+#        x13 = pointer to the result list
+
+multlst:
+    li x14, 0
+multlstloop:
+    bge x14, x11, done
+    lw x15, 0(x10)
+    mul x15, x15, x12
+    sw x15, 0(x13)
+    addi x10, x10, 4
+    addi x13, x13, 4
+    addi x14, x14, 1
+    j multlstloop
+done:
