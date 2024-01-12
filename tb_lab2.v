@@ -32,12 +32,12 @@ module tb;
     wait(halt);
 
     // Dump registers
-    #10000 $writememh("regs_out.hex", CPU.RF.Mem);
+    #40000 $writememh("regs_out.hex", CPU.RF.Mem);
 
     // Dump memory
-    #10000 $writememh("mem_out.hex", CPU.DMEM.Mem);
+    #40000 $writememh("mem_out.hex", CPU.DMEM.Mem);
 
-    #10000 $finish;
+    #40000 $finish;
   end
 
 
