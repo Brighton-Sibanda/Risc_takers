@@ -245,7 +245,7 @@ module PipelinedCPU(halt, clk, rst);
     //If all stages are done, we are done so halt
     if (stages == 5'b0)
     begin
-      $display("halt1");
+      // $display("halt1");
       haltFlagReg = 1'b1;
     end
 
@@ -273,7 +273,7 @@ module PipelinedCPU(halt, clk, rst);
       //we reached 0 instrucion, stop and let everything else go through!
       if ((InstWord == 32'b0))
       begin
-        $display("I a am at the end of the file :()");
+        // $display("I a am at the end of the file :()");
         next_stages[1] = 1'b0;
         PCReg = PCReg-4;
         next_stages[0] = 1'b0;
@@ -426,7 +426,7 @@ module PipelinedCPU(halt, clk, rst);
         end
         else if (fetch_reg_ex[14:12] == 3'b001)
         begin // LH
-          $display("halt2");
+          // $display("halt2");
           haltFlagReg   = temp_addrReg[0]; //if address wrong halt
           DataAddrMem_next   = temp_addrReg; //address
           MemSizeRegMem_next   = `SIZE_HWORD; //size
@@ -437,7 +437,7 @@ module PipelinedCPU(halt, clk, rst);
         end
         else if (fetch_reg_ex[14:12] == 3'b010)
         begin // LW
-          $display("halt3");
+          // $display("halt3");
           haltFlagReg   = temp_addrReg[0] | temp_addrReg[1];
           DataAddrMem_next   = temp_addrReg; //address
           MemSizeRegMem_next   = `SIZE_WORD; //size
@@ -457,7 +457,7 @@ module PipelinedCPU(halt, clk, rst);
         end
         else if (fetch_reg_ex[14:12] == 3'b101)
         begin // LHU
-          $display("halt4");
+          // $display("halt4");
           haltFlagReg   = temp_addrReg[0]; //if address wrong halt
           DataAddrMem_next   = temp_addrReg; //address
           MemSizeRegMem_next   = `SIZE_HWORD; //size
@@ -519,7 +519,7 @@ module PipelinedCPU(halt, clk, rst);
       begin
         signed_tempReg   = {{12{fetch_reg_ex[31]}}, fetch_reg_ex[19:12], fetch_reg_ex[20], fetch_reg_ex[30:21], 1'b0};
         temp_addrReg   = signed_tempReg + PCRegEx;
-        $display("halt5");
+        // $display("halt5");
         haltFlagReg   = temp_addrReg[0] | temp_addrReg[1];
         if ((PCRegEx) != temp_addrReg)
         begin
@@ -537,7 +537,7 @@ module PipelinedCPU(halt, clk, rst);
       begin
         signed_tempReg = Rdata1_fin;
         temp_addrReg   = signed_tempReg + {{20{fetch_reg_ex[31]}}, fetch_reg_ex[31:20]};
-        $display("halt6");
+        // $display("halt6");
         haltFlagReg   = temp_addrReg[0] | temp_addrReg[1];
 
         if ((PCRegEx) != temp_addrReg)
@@ -562,7 +562,7 @@ module PipelinedCPU(halt, clk, rst);
         //We are going to need to flush the pipline and fetch the next register...
         //That also means there is really no point in delaying anything, we are not doing anything else with branch so to need to wait for right back
         //to fix things
-        $display("in the branch, want to go to: %8x", temp_addrReg);
+        // $display("in the branch, want to go to: %8x", temp_addrReg);
         //if we dont, we have already finished the branch, nothing happens in the next stages.
         if (funct3_reg_ex == 3'b000)
         begin // BEQ
@@ -594,15 +594,15 @@ module PipelinedCPU(halt, clk, rst);
         end
         else if (funct3_reg_ex == 3'b100)
         begin // BLT
-          $display("In the branch!");
+          // $display("In the branch!");
           signed_tempReg   = Rdata1_fin;
           signed_temp_twoReg  = Rdata2_fin;
-          $display("Comparison: A: %08x, B: %08x", Rdata1_fin, Rdata2_fin);
+          // $display("Comparison: A: %08x, B: %08x", Rdata1_fin, Rdata2_fin);
           if (signed_tempReg < signed_temp_twoReg)
           begin
             //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
             PCReg   = temp_addrReg;
-            $display("ok I should branch, im going to: %8x", temp_addrReg);
+            // $display("ok I should branch, im going to: %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
             stages[0] = 0;
@@ -657,7 +657,7 @@ module PipelinedCPU(halt, clk, rst);
         end
         else
         begin
-          $display("halt7");
+          // $display("halt7");
           haltFlagReg   = 1'b1;
         end
       end
@@ -669,7 +669,7 @@ module PipelinedCPU(halt, clk, rst);
         ex_ford_lab_next[5] = 1'b1;
         ex_ford_lab_next[4:0] = fetch_reg_mem_next[11:7];
         ex_ford_next = RWrdataRegMem_next;
-        $display("just chucked in execute %8x, into %8x", ex_ford, ex_ford_lab[4:0]);
+        // $display("just chucked in execute %8x, into %8x", ex_ford, ex_ford_lab[4:0]);
       end
 
     end
@@ -760,7 +760,7 @@ module PipelinedCPU(halt, clk, rst);
         mem_ford_lab_next[5] = 1'b1;
         mem_ford_lab_next[4:0] = fetch_reg_wb_next[11:7];
         mem_ford_next = RWrdataRegWb_next;
-        $display("just chucked in mem %8x, into %8x", mem_ford, mem_ford_lab[4:0]);
+        // $display("just chucked in mem %8x, into %8x", mem_ford, mem_ford_lab[4:0]);
       end
     end
 
@@ -839,23 +839,3 @@ module ExecutionUnit(out, opA, opB, func, auxFunc);
   end
   assign out = myOutput;
 endmodule // ExecutionUnit
-
-
-
-
-
-
-/*
- 
-any instuctions before a halt should finish
-after halt, dont execute
-e.g detect, and not immediately halt, wait for other instructions to finish
-make sure that any instructions that come after it dont finish
- 
-functionality of stalls or NOPs, added at the end
-branch prediction always not taken
-forwardning not necessarily needed
- 
- 
- 
-*/
