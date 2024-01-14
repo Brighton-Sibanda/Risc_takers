@@ -1,5 +1,6 @@
 // start
 // input: n = x5
+// output = x1
 
 num_digits:
     	andi x8, x8, 0

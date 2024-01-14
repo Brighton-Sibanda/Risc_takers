@@ -1,6 +1,8 @@
 // Testbench for Northwestern - CompEng 361 - Lab2
 //`include "pipelined_gutted.v"
-`include "risc_takers.v"
+// `include "risc_takers.v"
+`include "pipelined_cpu.v"
+
 module tb;
   reg clk, rst;
   wire halt;
@@ -27,7 +29,7 @@ module tb;
     #0 $readmemh("regs_in.hex", CPU.RF.Mem);
 
     // Feel free to modify to inspect whatever you want
-    $monitor("HIGH LEVEL:PC: %08x, High level Instruction: %08x, Stages: %8b, next_stages: %8b, miss_predict: %01b, miss_predicted: %01b,  halt: %01b", CPU.PC, CPU.InstWord, CPU.stages, CPU.next_stages, CPU.miss_predict, CPU.miss_predicted, CPU.halt);
+    // $monitor("HIGH LEVEL:PC: %08x, High level Instruction: %08x, Stages: %8b, next_stages: %8b, miss_predict: %01b, miss_predicted: %01b,  halt: %01b", CPU.PC, CPU.InstWord, CPU.stages, CPU.next_stages, CPU.miss_predict, CPU.miss_predicted, CPU.halt);
     // Exits when halt is asserted
     wait(halt);
 

@@ -483,10 +483,17 @@ module PipelinedCPU(halt, clk, rst);
         temp_addrReg   = signed_tempReg + PCRegEx;
         $display("halt5");
         haltFlagReg   = temp_addrReg[0] | temp_addrReg[1];
+        // additional code:
+        RdstRegMem_next = Rdst_reg_ex;
+        RWrdataRegMem_next = PCRegEx + 4;
+        RWrEnRegMem_next = 1'b0;
+
         if ((PCRegEx) != temp_addrReg)
         begin
           //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
           PCReg  = temp_addrReg;
+          $display("jump success %8x", temp_addrReg);
+          $display("offset from pc %8x", signed_tempReg);
           //We need to do some clean up now as we predicted wrong
           miss_predict = 1;
           stages[0] = 0;
@@ -532,6 +539,7 @@ module PipelinedCPU(halt, clk, rst);
           begin
             //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
             PCReg   = temp_addrReg;
+            $display("BEQ SUCCESS %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
             stages[0] = 0;
@@ -546,6 +554,7 @@ module PipelinedCPU(halt, clk, rst);
           begin
             //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
             PCReg   = temp_addrReg;
+            $display("BNE SUCCESS %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
             stages[0] = 0;
@@ -556,7 +565,6 @@ module PipelinedCPU(halt, clk, rst);
         end
         else if (funct3_reg_ex == 3'b100)
         begin // BLT
-          $display("In the branch!");
           signed_tempReg   = Rdata1_fin;
           signed_temp_twoReg  = Rdata2_fin;
           $display("Comparison: A: %08x, B: %08x", Rdata1_fin, Rdata2_fin);
@@ -565,6 +573,7 @@ module PipelinedCPU(halt, clk, rst);
             //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
             PCReg   = temp_addrReg;
             $display("ok I should branch, im going to: %8x", temp_addrReg);
+            $display("BLT SUCCESS %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
             stages[0] = 0;
@@ -581,6 +590,7 @@ module PipelinedCPU(halt, clk, rst);
           begin
             //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
             PCReg   = temp_addrReg;
+            $display("BGE SUCCESS %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
             stages[0] = 0;
