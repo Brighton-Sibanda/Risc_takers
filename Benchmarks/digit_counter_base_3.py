@@ -30,8 +30,8 @@ def num_digits_base_3(n):
   while n > 0:
     var += 1
     digits += 1
-    n //= 3 # floor division is needed for 
-    # n = floor_division(n, 3)
+    # n //= 3 # floor division is needed for 
+    n = floor_division(n, 3)
 
   return digits
 
@@ -74,6 +74,6 @@ def floor_division(dividend, divisor):
 
 
 # Example usage
-number = 3444
+number = 100
 num_digits = num_digits_base_3(number)
 print(f"{number} has {num_digits} digits in base 3")
