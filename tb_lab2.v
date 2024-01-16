@@ -1,7 +1,6 @@
 // Testbench for Northwestern - CompEng 361 - Lab2
 //`include "pipelined_gutted.v"
 `include "risc_takers.v"
-// `include "pipelined_cpu.v"
 
 module tb;
   reg clk, rst;
