@@ -496,8 +496,9 @@ module PipelinedCPU(halt, clk, rst);
           $display("offset from pc %8x", signed_tempReg);
           //We need to do some clean up now as we predicted wrong
           miss_predict = 1;
-          stages[0] = 0;
-          stages[1] = 0;
+          next_stages[0] = 0;
+          next_stages[1] = 0;
+          next_stages[2] = 0;
           //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
           //3 and 4 are previous code that is still correct and should continue
         end
@@ -509,14 +510,20 @@ module PipelinedCPU(halt, clk, rst);
         $display("halt6");
         haltFlagReg   = temp_addrReg[0] | temp_addrReg[1];
 
+        // additional code:
+        RdstRegMem_next = Rdst_reg_ex;
+        RWrdataRegMem_next = PCRegEx + 4;
+        RWrEnRegMem_next = 1'b0;
+
         if ((PCRegEx) != temp_addrReg)
         begin
           //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
           PCReg   = temp_addrReg;
           //We need to do some clean up now as we predicted wrong
           miss_predict = 1;
-          stages[0] = 0;
-          stages[1] = 0;
+          next_stages[0] = 0;
+          next_stages[1] = 0;
+          next_stages[2] = 0;
           //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
           //3 and 4 are previous code that is still correct and should continue
         end
@@ -542,8 +549,11 @@ module PipelinedCPU(halt, clk, rst);
             $display("BEQ SUCCESS %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
-            stages[0] = 0;
-            stages[1] = 0;
+            // stages[0] = 0;
+            // stages[1] = 0;
+            next_stages[0] = 0;
+            next_stages[1] = 0;
+            next_stages[2] = 0;
             //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
             //3 and 4 are previous code that is still correct and should continue
           end
@@ -557,8 +567,11 @@ module PipelinedCPU(halt, clk, rst);
             $display("BNE SUCCESS %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
-            stages[0] = 0;
-            stages[1] = 0;
+            // stages[0] = 0;
+            // stages[1] = 0;
+            next_stages[0] = 0;
+            next_stages[1] = 0;
+            next_stages[2] = 0;
             //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
             //3 and 4 are previous code that is still correct and should continue
           end
@@ -576,8 +589,11 @@ module PipelinedCPU(halt, clk, rst);
             $display("BLT SUCCESS %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
-            stages[0] = 0;
-            stages[1] = 0;
+            // stages[0] = 0;
+            // stages[1] = 0;
+            next_stages[0] = 0;
+            next_stages[1] = 0;
+            next_stages[2] = 0;
             //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
             //3 and 4 are previous code that is still correct and should continue
           end
@@ -593,8 +609,11 @@ module PipelinedCPU(halt, clk, rst);
             $display("BGE SUCCESS %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
-            stages[0] = 0;
-            stages[1] = 0;
+            // stages[0] = 0;
+            // stages[1] = 0;
+            next_stages[0] = 0;
+            next_stages[1] = 0;
+            next_stages[2] = 0;
             //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
             //3 and 4 are previous code that is still correct and should continue
           end
@@ -607,8 +626,11 @@ module PipelinedCPU(halt, clk, rst);
             PCReg   = temp_addrReg;
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
-            stages[0] = 0;
-            stages[1] = 0;
+            // stages[0] = 0;
+            // stages[1] = 0;
+            next_stages[0] = 0;
+            next_stages[1] = 0;
+            next_stages[2] = 0;
             //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
             //3 and 4 are previous code that is still correct and should continue
           end
@@ -621,8 +643,11 @@ module PipelinedCPU(halt, clk, rst);
             PCReg   = temp_addrReg;
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
-            stages[0] = 0;
-            stages[1] = 0;
+            // stages[0] = 0;
+            // stages[1] = 0;
+            next_stages[0] = 0;
+            next_stages[1] = 0;
+            next_stages[2] = 0;
             //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
             //3 and 4 are previous code that is still correct and should continue
           end
