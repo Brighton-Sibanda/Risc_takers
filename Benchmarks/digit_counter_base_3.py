@@ -74,6 +74,6 @@ def floor_division(dividend, divisor):
 
 
 # Example usage
-number = 100
+number = 483
 num_digits = num_digits_base_3(number)
 print(f"{number} has {num_digits} digits in base 3")
