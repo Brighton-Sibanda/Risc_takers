@@ -507,9 +507,10 @@ module PipelinedCPU(halt, clk, rst);
       else if (fetch_reg_ex[6:0] == `OPCODE_JALR)
       begin
         signed_tempReg = Rdata1_fin;
-        temp_addrReg   = signed_tempReg + {{20{fetch_reg_ex[31]}}, fetch_reg_ex[31:20]};
+        temp_addrReg   = 32'hfffffffe & (signed_tempReg + {{20{fetch_reg_ex[31]}}, fetch_reg_ex[31:20]});
         $display("halt6");
         haltFlagReg   = temp_addrReg[0] | temp_addrReg[1];
+        $display("address to be jumbed to is %8x", temp_addrReg);
 
         // additional code:
         RdstRegMem_next = Rdst_reg_ex;
