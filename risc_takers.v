@@ -335,7 +335,6 @@ module PipelinedCPU(halt, clk, rst);
         //opA and B reg are assigned to the wire that goes into the eu
         opB_immReg   = Rdata2_fin;
         opA_immReg   = Rdata1_fin;
-        $display("we will attempt multiplying");
         //Same with funct7reg
         funct3Reg = funct3_reg_ex;
         funct7Reg = imm_reg_ex[11:5];
@@ -510,7 +509,8 @@ module PipelinedCPU(halt, clk, rst);
         temp_addrReg   = 32'hfffffffe & (signed_tempReg + {{20{fetch_reg_ex[31]}}, fetch_reg_ex[31:20]});
         $display("halt6");
         haltFlagReg   = temp_addrReg[0] | temp_addrReg[1];
-        $display("address to be jumbed to is %8x", temp_addrReg);
+        $display("stored address is %8x, PC is %8x", signed_tempReg, PCReg);
+        $display("address to be jumped to is %8x", temp_addrReg);
 
         // additional code:
         RdstRegMem_next = Rdst_reg_ex;
