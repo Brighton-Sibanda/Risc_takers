@@ -1,6 +1,6 @@
-// Template for Northwestern - CompEng 361 - Lab3
-// Groupname: architects
-// NetIDs: bns4987 - bpf2734
+// 
+// Groupname: Risc Takers
+// NetIDs: 
 
 // Some useful defines...please add your own
 `define OPCODE_COMPUTE    7'b0110011
@@ -212,28 +212,6 @@ module PipelinedCPU(halt, clk, rst);
     ex_ford = ex_ford_next;
     mem_ford= mem_ford_next;
 
-    /*
-        if (RWrEnRegMem == 1'b0 && forward_index == 2'b10)
-          begin
-            forward_signals[14:10] = fetch_reg_ex[11:7];
-            opA_alt = RWrdataRegEx;
-            $display("just chucked %8x, into %8x", opA_alt, fetch_reg_ex[11:7]);
-            forward_index = 2'b1;
-          end
-        else if (RWrEnRegMem == 1'b0 && forward_index == 2'b01)
-        begin 
-          forward_signals[9:5] = fetch_reg_ex[11:7];
-          opA_alt2 = RWrdataRegEx;
-          $display("just chucked %8x, into %8x", opA_alt2, fetch_reg_ex[11:7]);
-          forward_index = 2'b0;
-        end
-        else if (RWrEnRegMem == 1'b0 && forward_index == 2'b0)
-        begin
-          forward_signals[4:0] = fetch_reg_ex[11:7];
-          opA_alt3 = RWrdataRegEx;
-          $display("just chucked %8x, into %8x", opA_alt3, fetch_reg_ex[11:7]);
-          forward_index = 2'b10;
-        end */
   end
 
   always @*
@@ -245,7 +223,7 @@ module PipelinedCPU(halt, clk, rst);
     //If all stages are done, we are done so halt
     if (stages == 5'b0)
     begin
-      // $display("halt1");
+      $display("halt1");
       haltFlagReg = 1'b1;
     end
 
@@ -273,7 +251,7 @@ module PipelinedCPU(halt, clk, rst);
       //we reached 0 instrucion, stop and let everything else go through!
       if ((InstWord == 32'b0))
       begin
-        // $display("I a am at the end of the file :()");
+        $display("I a am at the end of the file :()");
         next_stages[1] = 1'b0;
         PCReg = PCReg-4;
         next_stages[0] = 1'b0;
@@ -348,22 +326,6 @@ module PipelinedCPU(halt, clk, rst);
         Rdata2_fin = mem_ford;
       end
 
-
-
-      //Things needed for Memory Write //MUST BE ASSIGNED STILL!!
-      // DataAddrMem_next = DataAddrReg;
-      // MemSizeRegMem_next = MemSizeReg;
-      // StoreDataRegMem_next = StoreDataReg;
-      // MemWrEnRegMem_next = 1'b0;
-      // //Things needed for Memory Read
-      // DataAddrMem_next = DataAddrReg;
-      // MemSizeRegMem_next = MemSizeReg;
-      // MemWrEnRegMem_next = 1'b1;
-      // //Things needed for Reg Write back
-      // RdstRegMem_next = Rdst_reg_ex;
-      // RWrdataRegMem_next = RWrdataRegEx;
-      // RWrEnRegMem_next = 1'b0;
-
       //IF no memory write, need to have MemWrEnRegMem_next = 1'b1;
       //if no reg write back, need to have RWrEnRegMem_next = 1'b1;
 
@@ -426,7 +388,7 @@ module PipelinedCPU(halt, clk, rst);
         end
         else if (fetch_reg_ex[14:12] == 3'b001)
         begin // LH
-          // $display("halt2");
+          $display("halt2");
           haltFlagReg   = temp_addrReg[0]; //if address wrong halt
           DataAddrMem_next   = temp_addrReg; //address
           MemSizeRegMem_next   = `SIZE_HWORD; //size
@@ -437,7 +399,7 @@ module PipelinedCPU(halt, clk, rst);
         end
         else if (fetch_reg_ex[14:12] == 3'b010)
         begin // LW
-          // $display("halt3");
+          $display("halt3");
           haltFlagReg   = temp_addrReg[0] | temp_addrReg[1];
           DataAddrMem_next   = temp_addrReg; //address
           MemSizeRegMem_next   = `SIZE_WORD; //size
@@ -457,7 +419,7 @@ module PipelinedCPU(halt, clk, rst);
         end
         else if (fetch_reg_ex[14:12] == 3'b101)
         begin // LHU
-          // $display("halt4");
+          $display("halt4");
           haltFlagReg   = temp_addrReg[0]; //if address wrong halt
           DataAddrMem_next   = temp_addrReg; //address
           MemSizeRegMem_next   = `SIZE_HWORD; //size
@@ -519,16 +481,24 @@ module PipelinedCPU(halt, clk, rst);
       begin
         signed_tempReg   = {{12{fetch_reg_ex[31]}}, fetch_reg_ex[19:12], fetch_reg_ex[20], fetch_reg_ex[30:21], 1'b0};
         temp_addrReg   = signed_tempReg + PCRegEx;
-        // $display("halt5");
+        $display("halt5");
         haltFlagReg   = temp_addrReg[0] | temp_addrReg[1];
+        // additional code:
+        RdstRegMem_next = Rdst_reg_ex;
+        RWrdataRegMem_next = PCRegEx + 4;
+        RWrEnRegMem_next = 1'b0;
+
         if ((PCRegEx) != temp_addrReg)
         begin
           //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
           PCReg  = temp_addrReg;
+          $display("jump success %8x", temp_addrReg);
+          $display("offset from pc %8x", signed_tempReg);
           //We need to do some clean up now as we predicted wrong
           miss_predict = 1;
-          stages[0] = 0;
-          stages[1] = 0;
+          next_stages[0] = 0;
+          next_stages[1] = 0;
+          next_stages[2] = 0;
           //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
           //3 and 4 are previous code that is still correct and should continue
         end
@@ -537,8 +507,13 @@ module PipelinedCPU(halt, clk, rst);
       begin
         signed_tempReg = Rdata1_fin;
         temp_addrReg   = signed_tempReg + {{20{fetch_reg_ex[31]}}, fetch_reg_ex[31:20]};
-        // $display("halt6");
+        $display("halt6");
         haltFlagReg   = temp_addrReg[0] | temp_addrReg[1];
+
+        // additional code:
+        RdstRegMem_next = Rdst_reg_ex;
+        RWrdataRegMem_next = PCRegEx + 4;
+        RWrEnRegMem_next = 1'b0;
 
         if ((PCRegEx) != temp_addrReg)
         begin
@@ -546,8 +521,9 @@ module PipelinedCPU(halt, clk, rst);
           PCReg   = temp_addrReg;
           //We need to do some clean up now as we predicted wrong
           miss_predict = 1;
-          stages[0] = 0;
-          stages[1] = 0;
+          next_stages[0] = 0;
+          next_stages[1] = 0;
+          next_stages[2] = 0;
           //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
           //3 and 4 are previous code that is still correct and should continue
         end
@@ -562,7 +538,7 @@ module PipelinedCPU(halt, clk, rst);
         //We are going to need to flush the pipline and fetch the next register...
         //That also means there is really no point in delaying anything, we are not doing anything else with branch so to need to wait for right back
         //to fix things
-        // $display("in the branch, want to go to: %8x", temp_addrReg);
+        $display("in the branch, want to go to: %8x", temp_addrReg);
         //if we dont, we have already finished the branch, nothing happens in the next stages.
         if (funct3_reg_ex == 3'b000)
         begin // BEQ
@@ -570,10 +546,14 @@ module PipelinedCPU(halt, clk, rst);
           begin
             //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
             PCReg   = temp_addrReg;
+            $display("BEQ SUCCESS %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
-            stages[0] = 0;
-            stages[1] = 0;
+            // stages[0] = 0;
+            // stages[1] = 0;
+            next_stages[0] = 0;
+            next_stages[1] = 0;
+            next_stages[2] = 0;
             //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
             //3 and 4 are previous code that is still correct and should continue
           end
@@ -584,29 +564,36 @@ module PipelinedCPU(halt, clk, rst);
           begin
             //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
             PCReg   = temp_addrReg;
+            $display("BNE SUCCESS %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
-            stages[0] = 0;
-            stages[1] = 0;
+            // stages[0] = 0;
+            // stages[1] = 0;
+            next_stages[0] = 0;
+            next_stages[1] = 0;
+            next_stages[2] = 0;
             //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
             //3 and 4 are previous code that is still correct and should continue
           end
         end
         else if (funct3_reg_ex == 3'b100)
         begin // BLT
-          // $display("In the branch!");
           signed_tempReg   = Rdata1_fin;
           signed_temp_twoReg  = Rdata2_fin;
-          // $display("Comparison: A: %08x, B: %08x", Rdata1_fin, Rdata2_fin);
+          $display("Comparison: A: %08x, B: %08x", Rdata1_fin, Rdata2_fin);
           if (signed_tempReg < signed_temp_twoReg)
           begin
             //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
             PCReg   = temp_addrReg;
-            // $display("ok I should branch, im going to: %8x", temp_addrReg);
+            $display("ok I should branch, im going to: %8x", temp_addrReg);
+            $display("BLT SUCCESS %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
-            stages[0] = 0;
-            stages[1] = 0;
+            // stages[0] = 0;
+            // stages[1] = 0;
+            next_stages[0] = 0;
+            next_stages[1] = 0;
+            next_stages[2] = 0;
             //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
             //3 and 4 are previous code that is still correct and should continue
           end
@@ -619,10 +606,14 @@ module PipelinedCPU(halt, clk, rst);
           begin
             //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
             PCReg   = temp_addrReg;
+            $display("BGE SUCCESS %8x", temp_addrReg);
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
-            stages[0] = 0;
-            stages[1] = 0;
+            // stages[0] = 0;
+            // stages[1] = 0;
+            next_stages[0] = 0;
+            next_stages[1] = 0;
+            next_stages[2] = 0;
             //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
             //3 and 4 are previous code that is still correct and should continue
           end
@@ -635,8 +626,11 @@ module PipelinedCPU(halt, clk, rst);
             PCReg   = temp_addrReg;
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
-            stages[0] = 0;
-            stages[1] = 0;
+            // stages[0] = 0;
+            // stages[1] = 0;
+            next_stages[0] = 0;
+            next_stages[1] = 0;
+            next_stages[2] = 0;
             //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
             //3 and 4 are previous code that is still correct and should continue
           end
@@ -649,15 +643,18 @@ module PipelinedCPU(halt, clk, rst);
             PCReg   = temp_addrReg;
             //We need to do some clean up now as we predicted wrong
             miss_predict = 1;
-            stages[0] = 0;
-            stages[1] = 0;
+            // stages[0] = 0;
+            // stages[1] = 0;
+            next_stages[0] = 0;
+            next_stages[1] = 0;
+            next_stages[2] = 0;
             //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
             //3 and 4 are previous code that is still correct and should continue
           end
         end
         else
         begin
-          // $display("halt7");
+          $display("halt7");
           haltFlagReg   = 1'b1;
         end
       end
@@ -669,7 +666,7 @@ module PipelinedCPU(halt, clk, rst);
         ex_ford_lab_next[5] = 1'b1;
         ex_ford_lab_next[4:0] = fetch_reg_mem_next[11:7];
         ex_ford_next = RWrdataRegMem_next;
-        // $display("just chucked in execute %8x, into %8x", ex_ford, ex_ford_lab[4:0]);
+        $display("just chucked in execute %8x, into %8x", ex_ford, ex_ford_lab[4:0]);
       end
 
     end
@@ -730,37 +727,13 @@ module PipelinedCPU(halt, clk, rst);
 
       end
 
-      // add the new register into forward
-      /*
-      if (RWrEnRegWb_next == 1'b0 && forward_index == 2'b10)
-      begin
-        forward_signals[14:10] = fetch_reg_wb_next[11:7];
-        opA_alt = RWrdataRegWb_next;
-        $display("just chucked %8x, into %8x", opA_alt, fetch_reg_wb_next[11:7]);
-        forward_index = 2'b1;
-      end
-      else if (RWrEnRegWb_next == 1'b0 && forward_index == 2'b01)
-      begin 
-        forward_signals[9:5] = fetch_reg_wb_next[11:7];
-        opA_alt2 = RWrdataRegWb_next;
-        $display("just chucked %8x, into %8x", opA_alt2, fetch_reg_wb_next[11:7]);
-        forward_index = 2'b0;
-      end
-      else if (RWrEnRegWb_next == 1'b0 && forward_index == 2'b0)
-      begin
-        forward_signals[4:0] = fetch_reg_wb_next[11:7];
-        opA_alt3 = RWrdataRegWb_next;
-        $display("just chucked %8x, into %8x", opA_alt3, fetch_reg_wb_next[11:7]);
-        forward_index = 2'b10;
-      end */
-
       mem_ford_lab_next[5] = 1'b0;
       if (RWrEnRegWb_next == 1'b0)
       begin
         mem_ford_lab_next[5] = 1'b1;
         mem_ford_lab_next[4:0] = fetch_reg_wb_next[11:7];
         mem_ford_next = RWrdataRegWb_next;
-        // $display("just chucked in mem %8x, into %8x", mem_ford, mem_ford_lab[4:0]);
+        $display("just chucked in mem %8x, into %8x", mem_ford, mem_ford_lab[4:0]);
       end
     end
 
@@ -796,6 +769,11 @@ module ExecutionUnit(out, opA, opB, func, auxFunc);
   reg [31:0] myOutput;
   wire signed [31:0] signedopA = $signed(opA);
   wire signed [31:0] signedopB = $signed(opB);
+  reg enable = 1'b0;
+  wire [31:0] mul_out;
+
+  BM bm1(.signedopA(signedopA), .signedopB(signedopB), .out(mul_out), .enable(enable));
+
   always @*
   begin
 
@@ -806,6 +784,11 @@ module ExecutionUnit(out, opA, opB, func, auxFunc);
         if (auxFunc[5] == 1'b1)
         begin
           myOutput = opA - opB;
+        end
+        else if (auxFunc[0] == 1'b1)
+        begin
+          $display("multiplication answer is %8x", mul_out);
+          enable = 1'b1;
         end
         else
         begin
@@ -837,5 +820,171 @@ module ExecutionUnit(out, opA, opB, func, auxFunc);
         myOutput = 32'b0;
     endcase
   end
-  assign out = myOutput;
+  assign out = enable ? mul_out :  myOutput ;
 endmodule // ExecutionUnit
+
+module BM(signedopA, signedopB, out, enable);
+
+  input wire signed [31:0] signedopA;
+  input wire signed [31:0] signedopB;
+  input wire enable;
+  output wire signed [31:0] out;
+
+
+  wire signed [31:0] signedopB_neg;
+  wire signed [64:0] partial_products [31:0];
+  wire signed [63:0] product_accumulator;
+  wire signed [63:0] shifted;
+
+  // Complement the multiplicand
+  assign signedopB_neg = ~signedopB + 1;
+
+
+  // Continuous assignment for partial products
+  assign partial_products[0]  = signedopA[0]  ? {{32{1'b0}}, signedopA} + (signedopB_neg << 32) : {{32{1'b0}}, signedopA};
+  // assign partial_products[1] = signedopA[0]  ? signedopA - (signedopB << 32) : signedopA;
+  assign partial_products[1]  = (partial_products[0][0] == partial_products[0][1])  ? (partial_products[0] >>> 1)  : (partial_products[0][1]) ? 
+  ((partial_products[0] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[0] >>> 1));
+
+  assign partial_products[2]  = (partial_products[1][0] == partial_products[1][1])  ? (partial_products[1] >>> 1)  : (partial_products[1][1]) ? 
+  ((partial_products[1] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[1] >>> 1));
+
+  assign partial_products[3]  = (partial_products[2][0] == partial_products[2][1])  ? (partial_products[2] >>> 1)  : (partial_products[2][1]) ? 
+  ((partial_products[2] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[2] >>> 1));
+
+  assign partial_products[4]  = (partial_products[3][0] == partial_products[3][1])  ? (partial_products[3] >>> 1)  : (partial_products[3][1]) ? 
+  ((partial_products[3] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[3] >>> 1));
+
+  assign partial_products[5]  = (partial_products[4][0] == partial_products[4][1])  ? (partial_products[4] >>> 1)  : (partial_products[4][1]) ? 
+  ((partial_products[4] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[4] >>> 1));
+
+  assign partial_products[6]  = (partial_products[5][0] == partial_products[5][1])  ? (partial_products[5] >>> 1)  : (partial_products[5][1]) ? 
+  ((partial_products[5] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[5] >>> 1));
+
+  assign partial_products[7]  = (partial_products[6][0] == partial_products[6][1])  ? (partial_products[6] >>> 1)  : (partial_products[6][1]) ? 
+  ((partial_products[6] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[6] >>> 1));
+
+  assign partial_products[8]  = (partial_products[7][0] == partial_products[7][1])  ? (partial_products[7] >>> 1)  : (partial_products[7][1]) ? 
+  ((partial_products[7] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[7] >>> 1));
+
+  assign partial_products[9]  = (partial_products[8][0] == partial_products[8][1])  ? (partial_products[8] >>> 1)  : (partial_products[8][1]) ? 
+  ((partial_products[8] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[8] >>> 1));
+
+  assign partial_products[10]  = (partial_products[9][0] == partial_products[9][1])  ? (partial_products[9] >>> 1)  : (partial_products[9][1]) ? 
+  ((partial_products[9] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[9] >>> 1));
+
+  assign partial_products[11]  = (partial_products[10][0] == partial_products[10][1])  ? (partial_products[10] >>> 1)  : (partial_products[10][1]) ? 
+  ((partial_products[10] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[10] >>> 1));
+
+  assign partial_products[12]  = (partial_products[11][0] == partial_products[11][1])  ? (partial_products[11] >>> 1)  : (partial_products[11][1]) ? 
+  ((partial_products[11] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[11] >>> 1));
+
+  assign partial_products[13]  = (partial_products[12][0] == partial_products[12][1])  ? (partial_products[12] >>> 1)  : (partial_products[12][1]) ?
+  ((partial_products[12] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[12] >>> 1));
+
+  assign partial_products[14]  = (partial_products[13][0] == partial_products[13][1])  ? (partial_products[13] >>> 1)  : (partial_products[13][1]) ? 
+  ((partial_products[13] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[13] >>> 1));
+
+  assign partial_products[15]  = (partial_products[14][0] == partial_products[14][1])  ? (partial_products[14] >>> 1)  : (partial_products[14][1]) ? 
+  ((partial_products[14] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[14] >>> 1));
+
+  assign partial_products[16]  = (partial_products[15][0] == partial_products[15][1])  ? (partial_products[15] >>> 1)  : (partial_products[15][1]) ? 
+  ((partial_products[15] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[15] >>> 1));
+
+  assign partial_products[17]  = (partial_products[16][0] == partial_products[16][1])  ? (partial_products[16] >>> 1)  : (partial_products[16][1]) ? 
+  ((partial_products[16] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[16] >>> 1));
+
+  assign partial_products[18]  = (partial_products[17][0] == partial_products[17][1])  ? (partial_products[17] >>> 1)  : (partial_products[17][1]) ? 
+  ((partial_products[17] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[17] >>> 1));
+
+  assign partial_products[19]  = (partial_products[18][0] == partial_products[18][1])  ? (partial_products[18] >>> 1)  : (partial_products[18][1]) ? 
+  ((partial_products[18] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[18] >>> 1));
+  
+   assign partial_products[20]  = (partial_products[19][0] == partial_products[19][1])  ? (partial_products[19] >>> 1)  : (partial_products[19][1]) ? 
+  ((partial_products[19] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[19] >>> 1));
+  
+   assign partial_products[21]  = (partial_products[20][0] == partial_products[20][1])  ? (partial_products[20] >>> 1)  : (partial_products[20][1]) ? 
+  ((partial_products[20] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[20] >>> 1));
+  
+   assign partial_products[22]  = (partial_products[21][0] == partial_products[21][1])  ? (partial_products[21] >>> 1)  : (partial_products[21][1]) ? 
+  ((partial_products[21] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[21] >>> 1));
+  
+   assign partial_products[23]  = (partial_products[22][0] == partial_products[22][1])  ? (partial_products[22] >>> 1)  : (partial_products[22][1]) ? 
+  ((partial_products[22] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[22] >>> 1));
+  
+   assign partial_products[24]  = (partial_products[23][0] == partial_products[23][1])  ? (partial_products[23] >>> 1)  : (partial_products[23][1]) ? 
+  ((partial_products[23] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[23] >>> 1));
+  
+   assign partial_products[25]  = (partial_products[24][0] == partial_products[24][1])  ? (partial_products[24] >>> 1)  : (partial_products[24][1]) ? 
+  ((partial_products[24] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[24] >>> 1));
+  
+   assign partial_products[26]  = (partial_products[25][0] == partial_products[25][1])  ? (partial_products[25] >>> 1)  : (partial_products[25][1]) ? 
+  ((partial_products[25] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[25] >>> 1));
+  
+   assign partial_products[27]  = (partial_products[26][0] == partial_products[26][1])  ? (partial_products[26] >>> 1)  : (partial_products[26][1]) ? 
+  ((partial_products[26] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[26] >>> 1));
+  
+   assign partial_products[28]  = (partial_products[27][0] == partial_products[27][1])  ? (partial_products[27] >>> 1)  : (partial_products[27][1]) ? 
+  ((partial_products[27] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[27] >>> 1));
+  
+   assign partial_products[29]  = (partial_products[28][0] == partial_products[28][1])  ? (partial_products[28] >>> 1)  : (partial_products[28][1]) ? 
+  ((partial_products[28] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[28] >>> 1));
+  
+   assign partial_products[30]  = (partial_products[29][0] == partial_products[29][1])  ? (partial_products[29] >>> 1)  : (partial_products[29][1]) ? 
+  ((partial_products[29] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[29] >>> 1));
+  
+   assign partial_products[31]  = (partial_products[30][0] == partial_products[30][1])  ? (partial_products[30] >>> 1)  : (partial_products[30][1]) ? 
+  ((partial_products[30] >>> 1)+(signedopB_neg << 32)) : ((signedopB << 32) + (partial_products[30] >>> 1));
+  
+
+
+  // assign partial_products[2]  = signedopA[2]  ? (signedopB << 2)  : (signedopA_neg << 2);
+  // assign partial_products[3]  = signedopA[3]  ? (signedopB << 3)  : (signedopA_neg << 3);
+  // assign partial_products[4]  = signedopA[4]  ? (signedopB << 4)  : (signedopA_neg << 4);
+  // assign partial_products[5]  = signedopA[5]  ? (signedopB << 5)  : (signedopA_neg << 5);
+  // assign partial_products[6]  = signedopA[6]  ? (signedopB << 6)  : (signedopA_neg << 6);
+  // assign partial_products[7]  = signedopA[7]  ? (signedopB << 7)  : (signedopA_neg << 7);
+  // assign partial_products[8]  = signedopA[8]  ? (signedopB << 8)  : (signedopA_neg << 8);
+  // assign partial_products[9]  = signedopA[9]  ? (signedopB << 9)  : (signedopA_neg << 9);
+  // assign partial_products[10] = signedopA[10] ? (signedopB << 10) : (signedopA_neg << 10);
+  // assign partial_products[11] = signedopA[11] ? (signedopB << 11) : (signedopA_neg << 11);
+  // assign partial_products[12] = signedopA[12] ? (signedopB << 12) : (signedopA_neg << 12);
+  // assign partial_products[13] = signedopA[13] ? (signedopB << 13) : (signedopA_neg << 13);
+  // assign partial_products[14] = signedopA[14] ? (signedopB << 14) : (signedopA_neg << 14);
+  // assign partial_products[15] = signedopA[15] ? (signedopB << 15) : (signedopA_neg << 15);
+  // assign partial_products[16] = signedopA[16] ? (signedopB << 16) : (signedopA_neg << 16);
+  // assign partial_products[17] = signedopA[17] ? (signedopB << 17) : (signedopA_neg << 17);
+  // assign partial_products[18] = signedopA[18] ? (signedopB << 18) : (signedopA_neg << 18);
+  // assign partial_products[19] = signedopA[19] ? (signedopB << 19) : (signedopA_neg << 19);
+  // assign partial_products[20] = signedopA[20] ? (signedopB << 20) : (signedopA_neg << 20);
+  // assign partial_products[21] = signedopA[21] ? (signedopB << 21) : (signedopA_neg << 21);
+  // assign partial_products[22] = signedopA[22] ? (signedopB << 22) : (signedopA_neg << 22);
+  // assign partial_products[23] = signedopA[23] ? (signedopB << 23) : (signedopA_neg << 23);
+  // assign partial_products[24] = signedopA[24] ? (signedopB << 24) : (signedopA_neg << 24);
+  // assign partial_products[25] = signedopA[25] ? (signedopB << 25) : (signedopA_neg << 25);
+  // assign partial_products[26] = signedopA[26] ? (signedopB << 26) : (signedopA_neg << 26);
+  // assign partial_products[27] = signedopA[27] ? (signedopB << 27) : (signedopA_neg << 27);
+  // assign partial_products[28] = signedopA[28] ? (signedopB << 28) : (signedopA_neg << 28);
+  // assign partial_products[29] = signedopA[29] ? (signedopB << 29) : (signedopA_neg << 29);
+  // assign partial_products[30] = signedopA[30] ? (signedopB << 30) : (signedopA_neg << 30);
+  // assign partial_products[31] = signedopA[31] ? (signedopB << 32) : (signedopA_neg << 31);
+
+  // Continuous assignment for product accumulation
+  // assign product_accumulator = partial_products[0] + partial_products[1] + partial_products[2] + partial_products[3] +
+  //                               partial_products[4] + partial_products[5] + partial_products[6] + partial_products[7] +
+  //                               partial_products[8] + partial_products[9] + partial_products[10] + partial_products[11] +
+  //                               partial_products[12] + partial_products[13] + partial_products[14] + partial_products[15] +
+  //                               partial_products[16] + partial_products[17] + partial_products[18] + partial_products[19] +
+  //                               partial_products[20] + partial_products[21] + partial_products[22] + partial_products[23] +
+  //                               partial_products[24] + partial_products[25] + partial_products[26] + partial_products[27] +
+  //                               partial_products[28] + partial_products[29] + partial_products[30] + partial_products[31];
+
+  // Output the final product
+  assign shifted = partial_products[31];
+
+  //  assign shifted  = (partial_products[31][0] == partial_products[31][1])  ? (partial_products[31] >>> 1)  : (partial_products[31][1]) ? 
+  // ((partial_products[31] >>> 1)+(signedopB_neg<< 32)) : ((signedopB << 32) + (partial_products[31] >>> 1));
+
+  assign out = shifted >> 1;
+
+endmodule
