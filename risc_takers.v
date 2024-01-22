@@ -374,8 +374,9 @@ module PipelinedCPU(halt, clk, rst);
         signed_tempReg = {{20{fetch_reg_ex[31]}}, fetch_reg_ex[31:20]};
         temp_addrReg = signed_tempReg + Rdata1_fin;
         loadHalt = 1;
-        stages[0] = 0;
-        stages[1] = 0;
+        next_stages[0] = 0;
+        next_stages[1] = 0;
+        next_stages[2] = 0; // new addition
         PCReg = PCRegEx + 4;
         if (fetch_reg_ex[14:12] == 3'b000)
         begin // LB
@@ -772,7 +773,7 @@ module ExecutionUnit(out, opA, opB, func, auxFunc);
   always @(*)
   begin
     //check each bit of the input to classify them
-    // enable = 1'b0;
+    enable = 1'b0;
     case (func[2:0])
       //Arithmetic
       3'b000:
