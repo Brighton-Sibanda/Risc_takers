@@ -16,4 +16,9 @@
 
 ## Basic Benchmark 1:
 
+- This program will test the basic opcodes that your cpu should be able to perform. The following opcodes are tested:
+  -  auipc, jal, jalr, beq, bne, blt, bge, bltu, bgeu, addi, slti, xori, ori, andi, slli, srli, srai, add, sub, sll, slt, sltu, xor, srl, sra, or, and
+- The program can be ran alone and requires no input
+- The output should remain consistent after each run
+
 ## Basic Benchmark 2:
