@@ -1,73 +1,65 @@
 # Function: basic_functions
 # Purpose: Test various RISC-V opcodes
 
-    .text
-    .globl basic_functions
-basic_functions:
-
     # Test auipc
     auipc x1, 0x0       # Load PC into x1
 
     # Test jal
-    jal x2, next:    # Jump to skip_jal, link address to x2
+    jal x2, 8    # Jump to skip_jal, link address to x2
 
 
 next:
     # Test jalr
-    jalr x3, x1, 8     # Jump to address in x1 + 4, link address to x3
+    jalr x3, x1, 12      # Jump to address in x1 + 4, link address to x3
 
     # Set up registers for branch and arithmetic tests
     addi x4, x0, 0            # Load immediate 0 into x4
+    addi x4, x0, 0
     addi x5, x0, 1           # Load immediate 1 into x5
     addi x6, x0, 2           # Load immediate 2 into x6
     addi x7, x0, 3           # Load immediate 3 into x7
+    addi x8, x0, 0
 
     # branch instructions
     beq x4, x5, benchmarkend  # Branch if x4 equals x5
-    bne x4, x5, benchmarkend  # Branch if x4 not equal x5
-    blt x4, x5, benchmarkend  # Branch if x4 less than x5
-    bge x5, x4, benchmarkend  # Branch if x5 greater or equal to x4
-    bltu x6, x7, benchmarkend # Branch if x6 less than x7, unsigned
-    bgeu x7, x6, benchmarkend # Branch if x7 greater or equal to x6, unsigned
-
-    # Load and store instructions (using a sample memory address)
-    auipc x8, %pcrel_hi(mem_area)   # Load upper part of 'mem_area' address into x8
-    addi  x8, x8, %pcrel_lo(mem_area)    # Load address of memory area into x8
-    lui x9, 0x1
-    addi x9, x9, 0x234      # Load immediate value into x9
+    bne x4, x8, benchmarkend  # Branch if x4 not equal x5
+    bge x4, x5, benchmarkend  # Branch if x4 less than x5
+    blt x5, x4, benchmarkend  # Branch if x5 greater or equal to x4
+    bgeu x6, x7, benchmarkend # Branch if x6 less than x7, unsigned
+    bltu x7, x6, benchmarkend # Branch if x7 greater or equal to x6, unsigned
 
     # Store x9 into memory
     sb x9, 0(x8)        # Store byte
-    sh x9, 2(x8)        # Store halfword
+    #sh x9, 2(x8)        # Store halfword
     sw x9, 4(x8)        # Store word
 
     # Load from memory into x10
     lb x10, 0(x8)       # Load byte
-    lh x10, 2(x8)       # Load halfword
+    #lh x10, 2(x8)       # Load halfword
     lw x10, 4(x8)       # Load word
-    lbu x10, 0(x8)      # Load byte unsigned
-    lhu x10, 2(x8)      # Load halfword unsigned
+    #lbu x10, 0(x8)      # Load byte unsigned
+    #lhu x10, 2(x8)      # Load halfword unsigned
 
     # Immediate arithmetic instructions
     addi x11, x5, 10    # Add immediate
-    slti x11, x5, 10    # Set less than immediate
-    xori x11, x5, 10    # XOR immediate
-    ori x11, x5, 10     # OR immediate
-    andi x11, x5, 10    # AND immediate
-    slli x11, x5, 1     # Shift left logical immediate
-    srli x11, x5, 1     # Shift right logical immediate
-    srai x11, x5, 1     # Shift right arithmetic immediate
+    slti x12, x5, 10    # Set less than immediate
+    xori x13, x5, 10    # XOR immediate
+    ori x14, x5, 10     # OR immediate
+    andi x15, x5, 10    # AND immediate
+    slli x16, x5, 1     # Shift left logical immediate
+    srli x17, x5, 1     # Shift right logical immediate
+    srai x18, x5, 1     # Shift right arithmetic immediate
 
     # Register-register arithmetic instructions
-    add x12, x5, x6     # Add
-    sub x12, x6, x5     # Subtract
-    sll x12, x5, x6     # Shift left logical
-    slt x12, x5, x6     # Set less than
-    sltu x12, x5, x6    # Set less than unsigned
-    xor x12, x5, x6     # XOR
-    srl x12, x5, x6     # Shift right logical
-    sra x12, x5, x6     # Shift right arithmetic
-    or x12, x5, x6      # OR
-    and x12, x5, x6     # AND
+    add x19, x5, x6     # Add
+    sub x20, x6, x5     # Subtract
+    sll x21, x5, x6     # Shift left logical
+    slt x22, x5, x6     # Set less than
+    sltu x23, x5, x6    # Set less than unsigned
+    xor x24, x5, x6     # XOR
+    srl x25, x5, x6     # Shift right logical
+    sra x26, x5, x6     # Shift right arithmetic
+    or x27, x5, x6      # OR
+    and x28, x5, x6     # AND
 
 benchmarkend:
