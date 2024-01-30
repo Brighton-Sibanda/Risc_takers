@@ -22,3 +22,7 @@
 - The output should remain consistent after each run
 
 ## Basic Benchmark 2:
+
+- This program will test the mult opcode of your cpu by multiplying each element of an array by a constant factor and stores the result in another array
+- The input requires you to store an array in memory with the address of that array stored in the register x10, and a multiplier of your choice in x12
+- The program then loops through, multiplying each element in the array, and then storing the base address of the result array into x13
