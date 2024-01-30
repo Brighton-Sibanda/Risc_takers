@@ -70,7 +70,4 @@ next:
     or x12, x5, x6      # OR
     and x12, x5, x6     # AND
 
-    # Return from function
-    ret
-
 benchmarkend:
