@@ -28,18 +28,6 @@ next:
     bgeu x6, x7, benchmarkend # Branch if x6 less than x7, unsigned
     bltu x7, x6, benchmarkend # Branch if x7 greater or equal to x6, unsigned
 
-    # Store x9 into memory
-    sb x9, 0(x8)        # Store byte
-    #sh x9, 2(x8)        # Store halfword
-    sw x9, 4(x8)        # Store word
-
-    # Load from memory into x10
-    lb x10, 0(x8)       # Load byte
-    #lh x10, 2(x8)       # Load halfword
-    lw x10, 4(x8)       # Load word
-    #lbu x10, 0(x8)      # Load byte unsigned
-    #lhu x10, 2(x8)      # Load halfword unsigned
-
     # Immediate arithmetic instructions
     addi x11, x5, 10    # Add immediate
     slti x12, x5, 10    # Set less than immediate
