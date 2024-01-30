@@ -14,7 +14,7 @@ basic_functions:
 
 next:
     # Test jalr
-    jalr x3, 4(x1)      # Jump to address in x1 + 4, link address to x3
+    jalr x3, x1, 16     # Jump to address in x1 + 4, link address to x3
 
     # Set up registers for branch and arithmetic tests
     addi x4, x0, 0            # Load immediate 0 into x4
