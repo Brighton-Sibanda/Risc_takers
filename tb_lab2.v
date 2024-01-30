@@ -27,11 +27,15 @@ module tb;
     #0 $readmemh("regs_in.hex", CPU.RF.Mem);
 
     // Feel free to modify to inspect whatever you want
-    $monitor("HIGH LEVEL:PC: %08x, High level Instruction: %08x, Stages: %8b, next_stages: %8b, miss_predict: %01b, miss_predicted: %01b,  halt: %01b", CPU.PC, CPU.InstWord, CPU.stages, CPU.next_stages, CPU.miss_predict, CPU.miss_predicted, CPU.halt);
+    // $monitor("HIGH LEVEL:PC: %08x, High level Instruction: %08x, Stages: %8b, next_stages: %8b, miss_predict: %01b, miss_predicted: %01b,  halt: %01b", CPU.PC, CPU.InstWord, CPU.stages, CPU.next_stages, CPU.miss_predict, CPU.miss_predicted, CPU.halt);
     // Exits when halt is asserted
 
     // #300 $finish;
-    // wait(halt);
+    wait(halt);
+
+    $dumpfile("wave.vcd");
+    $dumpvars(0, tb);
+
 
     // Dump registers
     #300 $writememh("regs_out.hex", CPU.RF.Mem);
