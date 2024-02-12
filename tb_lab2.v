@@ -32,7 +32,9 @@ module tb;
     $dumpvars(0, tb);
 
     // Feel free to modify to inspect whatever you want
-    $monitor("HIGH LEVEL:PC: %08x, High level Instruction: %08x, Stages: %8b, next_stages: %8b, miss_predict: %01b, miss_predicted: %01b,  halt: %01b", CPU.PC, CPU.InstWord, CPU.stages, CPU.next_stages, CPU.miss_predict, CPU.miss_predicted, CPU.halt);
+    // $monitor("HIGH LEVEL:PC: %08x, High level Instruction: %08x, Stages: %8b, next_stages: %8b, miss_predict: %01b, miss_predicted: %01b,  halt: %01b", CPU.PC, CPU.InstWord, CPU.stages, CPU.next_stages, CPU.miss_predict, CPU.miss_predicted, CPU.halt);
+      $monitor("HIGH LEVEL:PC: %08x, loops: %08x", CPU.PC, CPU.loops);
+
     // Exits when halt is asserted
     wait(halt);
 

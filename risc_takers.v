@@ -26,7 +26,8 @@ module PipelinedCPU(halt, clk, rst);
   input clk, rst;
 
   // Pipeline variables
-
+  reg [31:0] loops = 1;
+  reg [31:0] loops_next;
   reg [4:0] stages= 5'b00000;
   reg[4:0] next_stages= 5'b00001;
   reg [31:0] fetch_reg, fetch_reg_dec, fetch_reg_ex, fetch_reg_mem, fetch_reg_wb;
@@ -105,6 +106,18 @@ module PipelinedCPU(halt, clk, rst);
   reg signed [31:0] signed_temp_twoReg;
   reg [31:0] tempReg;
 
+  // ***** NEW REG VARS HERE ******** /////
+  reg [1:0] branch_predictor; 
+  reg [1:0] branch_predictor_next; 
+  // reg [31:0] prev_pc; // not sure if necessary
+  reg [31:0] btb;
+  reg took_branch; 
+  reg [31:0] took_branch_addr;
+
+  reg took_branch_ex; 
+  reg [31:0] took_branch_addr_ex;
+
+
   reg startReg = 1'b0;
 
   reg miss_predict = 1'b0; //MUST GET RESET EVERY CLOCK EDGE!
@@ -148,7 +161,6 @@ module PipelinedCPU(halt, clk, rst);
   assign DataAddr = DataAddrReg;
   assign MemSize = MemSizeReg;
   assign StoreData = StoreDataReg;
-  // assign DataWord = DataWordReg;
   assign MemWrEn = MemWrEnReg;
 
   assign RWrdata = RWrdataReg;
@@ -160,7 +172,6 @@ module PipelinedCPU(halt, clk, rst);
   assign funct3 = funct3Reg;
   assign NPC = PCReg;
 
-  //assign NPC = PC_Plus_4;
   always @(negedge clk)
   begin
     fetch_reg_dec = fetch_reg_dec_next;
@@ -182,6 +193,11 @@ module PipelinedCPU(halt, clk, rst);
     Rdst_reg_ex = Rdst_reg_ex_next;
     stages = next_stages;
     imm_reg_ex  = imm_reg_ex_next;
+
+    took_branch_ex = took_branch;
+    took_branch_addr_ex = took_branch_addr;
+    branch_predictor = branch_predictor_next;
+    loops = loops_next;
 
     //reset miss-predict so it can be used again
     miss_predicted = miss_predict;
@@ -219,6 +235,12 @@ module PipelinedCPU(halt, clk, rst);
     //Setup PC reg for the next Instruction
     PCReg = PC_Plus_4;
     haltFlagReg = 1'b0;
+    loops_next = loops + 1;
+
+    if (branch_predictor_next === 2'bxx)
+    begin
+      branch_predictor_next = 2'b00;
+    end
 
     //If all stages are done, we are done so halt
     if (stages == 5'b0)
@@ -251,7 +273,7 @@ module PipelinedCPU(halt, clk, rst);
       //we reached 0 instrucion, stop and let everything else go through!
       if ((InstWord == 32'b0))
       begin
-        $display("I a am at the end of the file :()");
+        // $display("I a am at the end of the file :()");
         next_stages[1] = 1'b0;
         PCReg = PCReg-4;
         next_stages[0] = 1'b0;
@@ -277,6 +299,22 @@ module PipelinedCPU(halt, clk, rst);
       imm_reg_ex_next = {20'b0, fetch_reg_dec[31:20]};
       //pass the instruction along too (we are lazy)
       fetch_reg_ex_next = fetch_reg_dec;
+
+      if (opcode_reg_ex_next == 7'b1100011)
+      begin
+        if (branch_predictor[1] == 1'b1)
+        begin
+          // next_stages[1] = 1'b0; /// TODO: check if this cancels the previous instruction
+          next_stages[1] = 1'b0; 
+          PCReg = btb;
+          took_branch_addr = btb;
+          took_branch = 1;
+        end
+        else
+        begin
+          took_branch = 0;
+        end
+      end
 
       //Branch Predict here! for now, both jumps and branches will predict not-taken
     end
@@ -493,8 +531,8 @@ module PipelinedCPU(halt, clk, rst);
         begin
           //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
           PCReg  = temp_addrReg;
-          $display("jump success %8x", temp_addrReg);
-          $display("offset from pc %8x", signed_tempReg);
+          // $display("jump success %8x", temp_addrReg);
+          // $display("offset from pc %8x", signed_tempReg);
           //We need to do some clean up now as we predicted wrong
           miss_predict = 1;
           next_stages[0] = 0;
@@ -510,8 +548,8 @@ module PipelinedCPU(halt, clk, rst);
         temp_addrReg   = 32'hfffffffe & (signed_tempReg + {{20{fetch_reg_ex[31]}}, fetch_reg_ex[31:20]});
         $display("halt6");
         haltFlagReg   = temp_addrReg[0] | temp_addrReg[1];
-        $display("stored address is %8x, PC is %8x", signed_tempReg, PCReg);
-        $display("address to be jumped to is %8x", temp_addrReg);
+        // $display("stored address is %8x, PC is %8x", signed_tempReg, PCReg);
+        // $display("address to be jumped to is %8x", temp_addrReg);
 
         // additional code:
         RdstRegMem_next = Rdst_reg_ex;
@@ -541,64 +579,135 @@ module PipelinedCPU(halt, clk, rst);
         //We are going to need to flush the pipline and fetch the next register...
         //That also means there is really no point in delaying anything, we are not doing anything else with branch so to need to wait for right back
         //to fix things
-        $display("in the branch, want to go to: %8x", temp_addrReg);
+        // $display("in the branch, want to go to: %8x", temp_addrReg);
         //if we dont, we have already finished the branch, nothing happens in the next stages.
         if (funct3_reg_ex == 3'b000)
         begin // BEQ
-          if (Rdata1_fin == Rdata2_fin)
+          if (Rdata1_fin == Rdata2_fin) // SHOULD HAVE TAKEN
           begin
-            //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
-            PCReg   = temp_addrReg;
-            $display("BEQ SUCCESS %8x", temp_addrReg);
-            //We need to do some clean up now as we predicted wrong
-            miss_predict = 1;
-            // stages[0] = 0;
-            // stages[1] = 0;
-            next_stages[0] = 0;
-            next_stages[1] = 0;
-            next_stages[2] = 0;
-            //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
-            //3 and 4 are previous code that is still correct and should continue
+            if (((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
+            begin
+              miss_predict = 1;
+              next_stages[0] = 0;
+              next_stages[1] = 0;
+              next_stages[2] = 0;
+              PCReg = temp_addrReg; // TODO: check if this is the right variable for next address
+              btb = temp_addrReg;
+            end
+
+            if (branch_predictor != 2'b11)
+            begin
+              branch_predictor_next = branch_predictor + 1;
+            end
+            else 
+            begin
+              branch_predictor_next = branch_predictor;
+            end
+          end
+          else // SHOULD HAVE NOT TAKEN
+          begin
+            if (took_branch_ex == 1)
+            begin
+              miss_predict = 1;
+              next_stages[0] = 0;
+              next_stages[1] = 0;
+              next_stages[2] = 0;
+              PCReg = PCRegEx + 4; // TODO: check if this is the right variable for next address
+            end
+            if (branch_predictor != 2'b00)
+              begin
+                branch_predictor_next = branch_predictor - 1;
+              end
+              else begin 
+                branch_predictor_next = branch_predictor;
+              end
           end
         end
         else if (funct3_reg_ex == 3'b001)
         begin // BNE
           if (Rdata1_fin != Rdata2_fin)
           begin
-            //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
-            PCReg   = temp_addrReg;
-            $display("BNE SUCCESS %8x", temp_addrReg);
-            //We need to do some clean up now as we predicted wrong
-            miss_predict = 1;
-            // stages[0] = 0;
-            // stages[1] = 0;
-            next_stages[0] = 0;
-            next_stages[1] = 0;
-            next_stages[2] = 0;
-            //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
-            //3 and 4 are previous code that is still correct and should continue
+            if (((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
+            begin
+              $display("only be here twice");
+              miss_predict = 1;
+              next_stages[0] = 0;
+              next_stages[1] = 0;
+              next_stages[2] = 0;
+              PCReg = temp_addrReg; // TODO: check if this is the right variable for next address
+              
+              btb = temp_addrReg;
+            end
+            if (branch_predictor != 2'b11)
+            begin
+              branch_predictor_next = branch_predictor + 1;
+            end
+            else 
+            begin 
+              branch_predictor_next = branch_predictor;
+            end
+          end
+          else // SHOULD HAVE NOT TAKEN
+          begin
+            if (took_branch_ex == 1)
+            begin
+              miss_predict = 1;
+              next_stages[0] = 0;
+              next_stages[1] = 0;
+              next_stages[2] = 0;
+              PCReg = PCRegEx + 4; // TODO: check if this is the right variable for next address
+            end
+            if (branch_predictor != 2'b00)
+              begin
+                branch_predictor_next = branch_predictor - 1;
+              end
+              else begin 
+                branch_predictor_next = branch_predictor;
+              end
           end
         end
         else if (funct3_reg_ex == 3'b100)
         begin // BLT
           signed_tempReg   = Rdata1_fin;
           signed_temp_twoReg  = Rdata2_fin;
-          $display("Comparison: A: %08x, B: %08x", Rdata1_fin, Rdata2_fin);
+          // $display("Comparison: A: %08x, B: %08x", Rdata1_fin, Rdata2_fin);
           if (signed_tempReg < signed_temp_twoReg)
           begin
-            //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
-            PCReg   = temp_addrReg;
-            $display("ok I should branch, im going to: %8x", temp_addrReg);
-            $display("BLT SUCCESS %8x", temp_addrReg);
-            //We need to do some clean up now as we predicted wrong
-            miss_predict = 1;
-            // stages[0] = 0;
-            // stages[1] = 0;
-            next_stages[0] = 0;
-            next_stages[1] = 0;
-            next_stages[2] = 0;
-            //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
-            //3 and 4 are previous code that is still correct and should continue
+            if (((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
+            begin
+              miss_predict = 1;
+              next_stages[0] = 0;
+              next_stages[1] = 0;
+              next_stages[2] = 0;
+              PCReg = temp_addrReg; // TODO: check if this is the right variable for next address
+              btb = temp_addrReg;
+            end
+            if (branch_predictor != 2'b11)
+            begin
+              branch_predictor_next = branch_predictor + 1;
+            end
+            else 
+            begin 
+              branch_predictor_next = branch_predictor;
+            end
+          end
+          else // SHOULD HAVE NOT TAKEN
+          begin
+            if (took_branch_ex == 1)
+            begin
+              miss_predict = 1;
+              next_stages[0] = 0;
+              next_stages[1] = 0;
+              next_stages[2] = 0;
+              PCReg = PCRegEx + 4; // TODO: check if this is the right variable for next address
+            end
+            if (branch_predictor != 2'b00)
+              begin
+                branch_predictor_next = branch_predictor - 1;
+              end
+              else begin 
+                branch_predictor_next = branch_predictor;
+              end
           end
         end
         else if (funct3_reg_ex == 3'b101)
@@ -607,52 +716,123 @@ module PipelinedCPU(halt, clk, rst);
           signed_temp_twoReg   = Rdata2_fin;
           if (signed_tempReg >= signed_temp_twoReg)
           begin
-            //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
-            PCReg   = temp_addrReg;
-            $display("BGE SUCCESS %8x", temp_addrReg);
-            //We need to do some clean up now as we predicted wrong
-            miss_predict = 1;
-            // stages[0] = 0;
-            // stages[1] = 0;
-            next_stages[0] = 0;
-            next_stages[1] = 0;
-            next_stages[2] = 0;
-            //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
-            //3 and 4 are previous code that is still correct and should continue
+          if (((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
+            begin
+              miss_predict = 1;
+              next_stages[0] = 0;
+              next_stages[1] = 0;
+              next_stages[2] = 0;
+              PCReg = temp_addrReg; // TODO: check if this is the right variable for next address
+              btb = temp_addrReg;
+            end
+            if (branch_predictor != 2'b11)
+            begin
+              branch_predictor_next = branch_predictor + 1;
+            end
+            else 
+            begin 
+              branch_predictor_next = branch_predictor;
+            end
+          end
+          else // SHOULD HAVE NOT TAKEN
+          begin
+            if (took_branch_ex == 1)
+            begin
+              miss_predict = 1;
+              next_stages[0] = 0;
+              next_stages[1] = 0;
+              next_stages[2] = 0;
+              PCReg = PCRegEx + 4; // TODO: check if this is the right variable for next address
+            end
+            if (branch_predictor != 2'b00)
+              begin
+                branch_predictor_next = branch_predictor - 1;
+              end
+              else begin 
+                branch_predictor_next = branch_predictor;
+              end
           end
         end
         else if (funct3_reg_ex == 3'b110)
         begin // BLTU
           if (Rdata1_fin < Rdata2_fin)
           begin
-            //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
-            PCReg   = temp_addrReg;
-            //We need to do some clean up now as we predicted wrong
-            miss_predict = 1;
-            // stages[0] = 0;
-            // stages[1] = 0;
-            next_stages[0] = 0;
-            next_stages[1] = 0;
-            next_stages[2] = 0;
-            //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
-            //3 and 4 are previous code that is still correct and should continue
+            if (((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
+            begin
+              miss_predict = 1;
+              next_stages[0] = 0;
+              next_stages[1] = 0;
+              next_stages[2] = 0;
+              PCReg = temp_addrReg; // TODO: check if this is the right variable for next address
+              btb = temp_addrReg;
+            end
+            if (branch_predictor != 2'b11)
+            begin
+              branch_predictor_next = branch_predictor + 1;
+            end
+            else 
+            begin 
+              branch_predictor_next = branch_predictor;
+            end
+          end
+          else // SHOULD HAVE NOT TAKEN
+          begin
+            if (took_branch_ex == 1)
+            begin
+              miss_predict = 1;
+              next_stages[0] = 0;
+              next_stages[1] = 0;
+              next_stages[2] = 0;
+              PCReg = PCRegEx + 4; // TODO: check if this is the right variable for next address
+            end
+            if (branch_predictor != 2'b00)
+              begin
+                branch_predictor_next = branch_predictor - 1;
+              end
+              else begin 
+                branch_predictor_next = branch_predictor;
+              end
           end
         end
         else if (funct3_reg_ex == 3'b111)
         begin // BGEU
           if (Rdata1_fin >= Rdata2_fin)
           begin
-            //NPC is going to be PCReg, so we are over writting it with this rather than PCplus4
-            PCReg   = temp_addrReg;
-            //We need to do some clean up now as we predicted wrong
-            miss_predict = 1;
-            // stages[0] = 0;
-            // stages[1] = 0;
-            next_stages[0] = 0;
-            next_stages[1] = 0;
-            next_stages[2] = 0;
-            //stages 2 - 4 can continue, 2 is this one which is fine as it doesn't do anything in later stages
-            //3 and 4 are previous code that is still correct and should continue
+            if (((took_branch_ex == 1) & (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
+            begin
+              miss_predict = 1;
+              next_stages[0] = 0;
+              next_stages[1] = 0;
+              next_stages[2] = 0;
+              PCReg = temp_addrReg; // TODO: check if this is the right variable for next address
+              btb = temp_addrReg;
+            end
+            if (branch_predictor != 2'b11)
+            begin
+              branch_predictor_next = branch_predictor + 1;
+            end
+            else 
+            begin 
+              branch_predictor_next = branch_predictor;
+            end
+          end
+          else // SHOULD HAVE NOT TAKEN
+          begin
+            if (took_branch_ex == 1)
+            begin
+              miss_predict = 1;
+              next_stages[0] = 0;
+              next_stages[1] = 0;
+              next_stages[2] = 0;
+              PCReg = PCRegEx + 4; // TODO: check if this is the right variable for next address
+            end
+            if (branch_predictor != 2'b00)
+              begin
+                branch_predictor_next = branch_predictor - 1;
+              end
+              else begin 
+                branch_predictor_next = branch_predictor;
+              end
           end
         end
         else
@@ -669,10 +849,15 @@ module PipelinedCPU(halt, clk, rst);
         ex_ford_lab_next[5] = 1'b1;
         ex_ford_lab_next[4:0] = fetch_reg_mem_next[11:7];
         ex_ford_next = RWrdataRegMem_next;
-        $display("just chucked in execute %8x, into %8x", ex_ford, ex_ford_lab[4:0]);
+        // $display("just chucked in execute %8x, into %8x", ex_ford, ex_ford_lab[4:0]);
       end
 
     end
+
+
+
+
+
 
     // MEMORY WRITE OR READ STAGE
 
@@ -736,7 +921,7 @@ module PipelinedCPU(halt, clk, rst);
         mem_ford_lab_next[5] = 1'b1;
         mem_ford_lab_next[4:0] = fetch_reg_wb_next[11:7];
         mem_ford_next = RWrdataRegWb_next;
-        $display("just chucked in mem %8x, into %8x", mem_ford, mem_ford_lab[4:0]);
+        // $display("just chucked in mem %8x, into %8x", mem_ford, mem_ford_lab[4:0]);
       end
     end
 
@@ -750,8 +935,8 @@ module PipelinedCPU(halt, clk, rst);
       RWrEnReg = RWrEnRegWb;
 
     end
-  end
 
+  end
 
 endmodule
 
@@ -860,7 +1045,7 @@ module Booth_multiplication (signedopA, signedopB, out, enable);
         end
         //sign = accumulator[31];
         // accumulator = accumulator >> 1;
-        $display("multiplication answer is %8x", accumulator);
+        // $display("multiplication answer is %8x", accumulator);
         //accumulator[31] = sign; 
       end
   end 
