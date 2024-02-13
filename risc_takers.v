@@ -826,8 +826,8 @@ module Booth_multiplication (signedopA, signedopB, out, enable);
   input enable;
   output signed [31:0] out;
   reg [31:0] out_result;
-  reg [64:0] accumulator = 64'b0;
-  reg [64:0] addition_val;
+  reg [63:0] accumulator = 64'b0;
+  reg [63:0] addition_val;
   reg signed sign;
   reg signed [31:0] cmpval;
   integer i;
@@ -838,9 +838,12 @@ module Booth_multiplication (signedopA, signedopB, out, enable);
         addition_val = {signedopA, {32'b0}};
         for (i = 0; i < 32; i = i + 1) begin
             sign = accumulator[63];
-            cmpval = signedopB[i-1];
+            
             if (i == 1'b0) begin
               cmpval = 32'b0;
+            end
+            else begin 
+              cmpval = signedopB[i-1];
             end
             if (signedopB[i] == 1'b0 && cmpval == 1'b0) begin
               accumulator = accumulator + 1'b0;

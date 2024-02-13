@@ -1,4 +1,4 @@
-`include "execution_unit.v"
+`include "Synthesis/struct_exec_unit.v"
 module ExecutionUnit_tb;
 
     // Inputs
