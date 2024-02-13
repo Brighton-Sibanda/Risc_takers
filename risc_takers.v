@@ -109,10 +109,10 @@ module PipelinedCPU(halt, clk, rst);
   // ***** NEW REG VARS HERE ******** /////
   reg [1:0] branch_predictor; 
   reg [1:0] branch_predictor_next; 
-  // reg [31:0] prev_pc; // not sure if necessary
   reg [31:0] btb;
   reg took_branch; 
   reg [31:0] took_branch_addr;
+  reg [31:0] btb_next;
 
   reg took_branch_ex; 
   reg [31:0] took_branch_addr_ex;
@@ -228,6 +228,8 @@ module PipelinedCPU(halt, clk, rst);
     ex_ford = ex_ford_next;
     mem_ford= mem_ford_next;
 
+    btb = btb_next;
+
   end
 
   always @*
@@ -306,6 +308,7 @@ module PipelinedCPU(halt, clk, rst);
         begin
           // next_stages[1] = 1'b0; /// TODO: check if this cancels the previous instruction
           next_stages[1] = 1'b0; 
+          next_stages[0] = 1'b1; 
           PCReg = btb;
           took_branch_addr = btb;
           took_branch = 1;
@@ -592,7 +595,7 @@ module PipelinedCPU(halt, clk, rst);
               next_stages[1] = 0;
               next_stages[2] = 0;
               PCReg = temp_addrReg; // TODO: check if this is the right variable for next address
-              btb = temp_addrReg;
+              btb_next = temp_addrReg;
             end
 
             if (branch_predictor != 2'b11)
@@ -629,14 +632,12 @@ module PipelinedCPU(halt, clk, rst);
           begin
             if (((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
             begin
-              $display("only be here twice");
               miss_predict = 1;
               next_stages[0] = 0;
               next_stages[1] = 0;
               next_stages[2] = 0;
               PCReg = temp_addrReg; // TODO: check if this is the right variable for next address
-              
-              btb = temp_addrReg;
+              btb_next = temp_addrReg;
             end
             if (branch_predictor != 2'b11)
             begin
@@ -670,26 +671,29 @@ module PipelinedCPU(halt, clk, rst);
         begin // BLT
           signed_tempReg   = Rdata1_fin;
           signed_temp_twoReg  = Rdata2_fin;
-          // $display("Comparison: A: %08x, B: %08x", Rdata1_fin, Rdata2_fin);
+          $display("Comparison: A: %08x, B: %08x", Rdata1_fin, Rdata2_fin);
+          $display("took branch? %08x", took_branch_ex);
           if (signed_tempReg < signed_temp_twoReg)
           begin
-            if (((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
+
+            if (((took_branch_ex == 1) & (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
             begin
+
               miss_predict = 1;
               next_stages[0] = 0;
               next_stages[1] = 0;
               next_stages[2] = 0;
               PCReg = temp_addrReg; // TODO: check if this is the right variable for next address
-              btb = temp_addrReg;
+              btb_next = temp_addrReg;
             end
-            if (branch_predictor != 2'b11)
-            begin
-              branch_predictor_next = branch_predictor + 1;
-            end
-            else 
-            begin 
-              branch_predictor_next = branch_predictor;
-            end
+              if (branch_predictor != 2'b11)
+              begin
+                branch_predictor_next = branch_predictor + 1;
+              end
+              else
+              begin 
+                branch_predictor_next = branch_predictor;
+              end
           end
           else // SHOULD HAVE NOT TAKEN
           begin
@@ -723,7 +727,7 @@ module PipelinedCPU(halt, clk, rst);
               next_stages[1] = 0;
               next_stages[2] = 0;
               PCReg = temp_addrReg; // TODO: check if this is the right variable for next address
-              btb = temp_addrReg;
+              btb_next = temp_addrReg;
             end
             if (branch_predictor != 2'b11)
             begin
@@ -764,7 +768,7 @@ module PipelinedCPU(halt, clk, rst);
               next_stages[1] = 0;
               next_stages[2] = 0;
               PCReg = temp_addrReg; // TODO: check if this is the right variable for next address
-              btb = temp_addrReg;
+              btb_next = temp_addrReg;
             end
             if (branch_predictor != 2'b11)
             begin
@@ -805,7 +809,7 @@ module PipelinedCPU(halt, clk, rst);
               next_stages[1] = 0;
               next_stages[2] = 0;
               PCReg = temp_addrReg; // TODO: check if this is the right variable for next address
-              btb = temp_addrReg;
+              btb_next = temp_addrReg;
             end
             if (branch_predictor != 2'b11)
             begin
