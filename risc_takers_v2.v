@@ -419,7 +419,7 @@ module PipelinedCPU(halt, clk, rst);
         next_stages[0] = 0;
         next_stages[1] = 0;
         next_stages[2] = 0; // new addition
-        PCReg = PCRegEx + 8;
+        PCReg = PCRegEx + 4;
         if (fetch_reg_ex[14:12] == 3'b000)
         begin // LB
           DataAddrMem_next   = temp_addrReg; //address
