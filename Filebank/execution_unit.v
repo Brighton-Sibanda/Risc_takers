@@ -90,9 +90,12 @@ module Booth_multiplication (signedopA, signedopB, out, enable);
         addition_val = {signedopA, {32'b0}};
         for (i = 0; i < 32; i = i + 1) begin
             sign = accumulator[63];
-            cmpval = signedopB[i-1];
+            
             if (i == 1'b0) begin
               cmpval = 32'b0;
+            end
+            else begin
+              cmpval = signedopB[i-1];
             end
             if (signedopB[i] == 1'b0 && cmpval == 1'b0) begin
               accumulator = accumulator + 1'b0;

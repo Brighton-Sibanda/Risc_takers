@@ -1,8 +1,8 @@
 // Testbench for Northwestern - CompEng 361 - Lab2
 //`include "pipelined_gutted.v"
 `timescale 1ns/1ps
-//`include "risc_takers_v2.v"
-`include "Synthesis/behav_pipeline_synth.v"
+`include "risc_takers_V2.v"
+//`include "pipeline_synth.v"
 
 module tb;
   reg clk, rst;
@@ -31,8 +31,8 @@ module tb;
 
 
 
-    $dumpfile("wave.vcd");
-    $dumpvars(0, tb);
+    //$dumpfile("wave.vcd");
+    //$dumpvars(0, tb);
 
     // Feel free to modify to inspect whatever you want
     //$monitor("HIGH LEVEL:PC: %08x, High level Instruction: %08x, Stages: %8b, next_stages: %8b, miss_predict: %01b, miss_predicted: %01b,  halt: %01b", CPU.PC, CPU.InstWord, CPU.stages, CPU.next_stages, CPU.miss_predict, CPU.miss_predicted, CPU.halt);
@@ -40,12 +40,12 @@ module tb;
     wait(halt);
 
     // Dump registers
-    #4000000 $writememh("regs_out.hex", CPU.RF.Mem);
+    #400000 $writememh("regs_out.hex", CPU.RF.Mem);
 
     // Dump memory
-    #4000000 $writememh("mem_out.hex", CPU.DMEM.Mem);
+    #400000 $writememh("mem_out.hex", CPU.DMEM.Mem);
 
-    #4000000 $finish;
+    #400000 $finish;
   end
 
 

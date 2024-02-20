@@ -214416,7 +214416,7 @@ module nandd    (A, B, Y);
   input A, B;
   output Y;
 
-  assign Y = ~(A && B);
+  assign Y = ~(A & B);
 
 endmodule
 
@@ -214425,7 +214425,7 @@ module norr(A, B, Y);
   input A, B;
   output Y;
 
-  assign Y = ~(A || B);
+  assign Y = ~(A | B);
 
 endmodule
 
