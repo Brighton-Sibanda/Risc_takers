@@ -1,4 +1,4 @@
-`include "Synthesis/struct_exec_unit.v"
+`include "gpt_booth.v"
 module ExecutionUnit_tb;
 
     // Inputs
@@ -116,7 +116,7 @@ module ExecutionUnit_tb;
         func = 3'b000;
         auxFunc = 7'b1;
         #100;
-        //if (out !== 0) $display("Test Case 9 Failed");
+        if (out !== 24) $display("Test Case 9 Failed");
 
 
         $finish;

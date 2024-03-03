@@ -1,6 +1,7 @@
 // 
 // Groupname: Risc Takers
 // NetIDs: 
+//`timescale 1ns/1ps
 
 // Some useful defines...please add your own
 `define OPCODE_COMPUTE    7'b0110011

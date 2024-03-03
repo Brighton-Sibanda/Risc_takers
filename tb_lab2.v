@@ -1,7 +1,8 @@
 // Testbench for Northwestern - CompEng 361 - Lab2
 //`include "pipelined_gutted.v"
 `timescale 1ns/1ps
-`include "risc_takers_v3.v"
+//`include "risc_takers_v3.v"
+`include "risc_takers_v4_2.v"
 //`include "pipeline_synth.v"
 
 module tb;
@@ -9,7 +10,7 @@ module tb;
   wire halt;
 
   // Single Cycle CPU instantiation
-  // PipelinedCPU CPU (halt, clk,rst);
+  //PipelinedCPU CPU (halt, clk,rst);
   RunCPU CPU (halt, clk,rst);
 
   // Clock Period = 10 time units
