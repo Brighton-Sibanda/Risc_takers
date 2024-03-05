@@ -598,12 +598,9 @@ module PipelinedCPU(halt, clk, rst);
         begin // BEQ
           if (Rdata1_fin == Rdata2_fin) // SHOULD HAVE TAKEN
           begin
-            if ((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg))
-            begin
-              missed_next = missed + 1;
-            end
             if (((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
             begin
+              missed_next = missed + 1;
               miss_predict = 1;
               next_stages[0] = 0;
               next_stages[1] = 0;
@@ -625,6 +622,7 @@ module PipelinedCPU(halt, clk, rst);
           begin
             if (took_branch_ex == 1)
             begin
+                missed_next = missed + 1;
               miss_predict = 1;
               next_stages[0] = 0;
               next_stages[1] = 0;
@@ -644,12 +642,9 @@ module PipelinedCPU(halt, clk, rst);
         begin // BNE
           if (Rdata1_fin != Rdata2_fin)
           begin
-            if ((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg))
-            begin
-              missed_next = missed + 1;
-            end
             if (((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
             begin
+              missed_next = missed + 1;
               miss_predict = 1;
               next_stages[0] = 0;
               next_stages[1] = 0;
@@ -670,6 +665,7 @@ module PipelinedCPU(halt, clk, rst);
           begin
             if (took_branch_ex == 1)
             begin
+                missed_next = missed + 1;
               miss_predict = 1;
               next_stages[0] = 0;
               next_stages[1] = 0;
@@ -693,13 +689,10 @@ module PipelinedCPU(halt, clk, rst);
           $display("took branch? %08x", took_branch_ex);
           if (signed_tempReg < signed_temp_twoReg)
           begin
-            if ((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg))
-            begin
-              missed_next = missed + 1;
-            end
 
             if (((took_branch_ex == 1) & (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
             begin
+                missed_next = missed + 1;
               miss_predict = 1;
               next_stages[0] = 0;
               next_stages[1] = 0;
@@ -720,6 +713,7 @@ module PipelinedCPU(halt, clk, rst);
           begin
             if (took_branch_ex == 1)
             begin
+                missed_next = missed + 1;
               miss_predict = 1;
               next_stages[0] = 0;
               next_stages[1] = 0;
@@ -741,12 +735,9 @@ module PipelinedCPU(halt, clk, rst);
           signed_temp_twoReg   = Rdata2_fin;
           if (signed_tempReg >= signed_temp_twoReg)
           begin
-              if ((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg))
-            begin
-              missed_next = missed + 1;
-            end
           if (((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
             begin
+                missed_next = missed + 1;
               miss_predict = 1;
               next_stages[0] = 0;
               next_stages[1] = 0;
@@ -787,13 +778,9 @@ module PipelinedCPU(halt, clk, rst);
         begin // BLTU
           if (Rdata1_fin < Rdata2_fin)
           begin
-            if ((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg))
-            begin
-              missed_next = missed + 1;
-            end
             if (((took_branch_ex == 1) && (took_branch_addr_ex != temp_addrReg)) | (took_branch_ex == 0))
             begin
-              
+                missed_next = missed + 1;
               miss_predict = 1;
               next_stages[0] = 0;
               next_stages[1] = 0;
