@@ -2,7 +2,7 @@
 //`include "pipelined_gutted.v"
 `timescale 1ns/1ps
 //`include "risc_takers_v3.v"
-`include "risc_takers_v4_2.v"
+`include "risc_takers_v3.v"
 //`include "pipeline_synth.v"
 
 module tb;

@@ -893,10 +893,6 @@ module PipelinedCPU(halt, clk, rst, Rsrc1, Rsrc2, Rdst,
     end
 
 
-
-
-
-
     // MEMORY WRITE OR READ STAGE
 
     if (stages[3] == 1'b0)

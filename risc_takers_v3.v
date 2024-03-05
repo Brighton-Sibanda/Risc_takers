@@ -296,7 +296,7 @@ module PipelinedCPU(halt, clk, rst, Rsrc1, Rsrc2, Rdst,
       if ((miss_predict == 1'b1) | (miss_predicted == 1'b1) | (loadHalted == 1'b1))
       begin
         next_stages[0] = 1'b1;
-        $display("load halted bro");
+        $display("handling stall or jump");
       end
     end
     //Otherwse, normal execution
@@ -592,6 +592,8 @@ module PipelinedCPU(halt, clk, rst, Rsrc1, Rsrc2, Rdst,
         RdstRegMem_next = Rdst_reg_ex;
         RWrdataRegMem_next = PCRegEx + 4;
         RWrEnRegMem_next = 1'b0;
+        $display("jumping to %8x", temp_addrReg);
+
 
         if ((PCRegEx) != temp_addrReg)
         begin
@@ -892,11 +894,6 @@ module PipelinedCPU(halt, clk, rst, Rsrc1, Rsrc2, Rdst,
 
     end
 
-
-
-
-
-
     // MEMORY WRITE OR READ STAGE
 
     if (stages[3] == 1'b0)
@@ -971,7 +968,6 @@ module PipelinedCPU(halt, clk, rst, Rsrc1, Rsrc2, Rdst,
       RdstReg = RdstRegWb;
       RWrdataReg = RWrdataRegWb;
       RWrEnReg = RWrEnRegWb;
-
     end
 
   end
